@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Christmas Wish List Tracker</title>
+  <style>
+    :root {
+      --bg-color: #0f1f17;
+      --card-bg: #182e23;
+      --card-border: #244636;
+      --accent-red: #c93b3b;
+      --accent-red-hover: #b02a2a;
+      --accent-gold: #e2b442;
+      --text-main: #f3f7f4;
+      --text-muted: #9eb8a7;
+      --purchased-bg: #14241c;
+      --purchased-border: #1d3327;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    header {
+      text-align: center;
+      margin-bottom: 25px;
+      position: relative;
+    }
+
+    header h1 {
+      font-size: 2.2rem;
+      color: var(--accent-gold);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+    }
+
+    .view-switch {
+      margin-top: 10px;
+      display: inline-flex;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 4px;
+    }
+
+    .view-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 6px 16px;
+      border-radius: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .view-btn.active {
+      background: var(--accent-red);
+      color: white;
+    }
+
+    /* Child filter tabs */
+    .filter-tabs {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .tab-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 8px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-gold);
+      color: #1a1a1a;
+      border-color: var(--accent-gold);
+    }
+
+    /* Add Item Form */
+    .form-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 25px;
+    }
+
+    .form-card h2 {
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      color: var(--accent-gold);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: #0b1711;
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 1px solid var(--accent-gold);
+    }
+
+    .form-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .btn-submit {
+      background: var(--accent-red);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover { background: var(--accent-red-hover); }
+
+    /* Wishlist Grid */
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .item-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .item-card.is-purchased {
+      background: var(--purchased-bg);
+      border-color: var(--purchased-border);
+      opacity: 0.65;
+    }
+
+    .item-thumb-box {
+      width: 100%;
+      height: 180px;
+      background: #080f0b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .item-thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .item-thumb-box .placeholder {
+      font-size: 2.5rem;
+    }
+
+    .item-body {
+      padding: 14px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .item-child-badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: rgba(226, 180, 66, 0.15);
+      color: var(--accent-gold);
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .item-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .item-title a {
+      color: var(--text-main);
+      text-decoration: none;
+    }
+
+    .item-title a:hover { text-decoration: underline; }
+
+    .item-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .item-notes {
+      font-size: 0.85rem;
+      color: #b5c7bc;
+      margin-bottom: 12px;
+      flex-grow: 1;
+    }
+
+    /* Adult Purchase Bar */
+    .purchase-control {
+      margin-top: auto;
+      padding-top: 10px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .purchase-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .purchase-label input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent-red);
+      cursor: pointer;
+    }
+
+    .buyer-info {
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>🎄 Family Wish List Tracker 🎁</h1>
+    <div class="view-switch">
+      <button class="view-btn active" id="btn-kid-mode" onclick="setMode('kid')">Kids View</button>
+      <button class="view-btn" id="btn-adult-mode" onclick="promptAdultMode()">Adult View (Santa)</button>
+    </div>
+  </header>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button class="tab-btn active" onclick="setFilter('All')">All Items</button>
+    <button class="tab-btn" onclick="setFilter('Nora')">Nora</button>
+    <button class="tab-btn" onclick="setFilter('Clara')">Clara</button>
+    <button class="tab-btn" onclick="setFilter('Emily')">Emily</button>
+    <button class="tab-btn" onclick="setFilter('Samantha')">Samantha</button>
+  </div>
+
+  <!-- Add Item Form -->
+  <div class="form-card" id="add-form">
+    <h2>Add an Item to the List</h2>
+    <div class="form-grid">
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Who is this for?</label>
+        <select id="input-child">
+          <option value="Nora">Nora</option>
+          <option value="Clara">Clara</option>
+          <option value="Emily">Emily</option>
+          <option value="Samantha">Samantha</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Product Web Link (URL)</label>
+        <input type="url" id="input-url" placeholder="https://..." onblur="autoFetchMetadata()">
+      </div>
+
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Item Name</label>
+        <input type="text" id="input-title" placeholder="e.g., Cozy Flannel Pajamas">
+      </div>
+
+      <div>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Estimated Price</label>
+        <input type="text" id="input-price" placeholder="e.g., $25 - $30">
+      </div>
+
+      <div style="grid-column: 1 / -1;">
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Specifics (Size, Color, Notes)</label>
+        <input type="text" id="input-notes" placeholder="Size Medium, Dark Green color preference">
+      </div>
+
+      <input type="hidden" id="input-image" value="">
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-submit" onclick="submitNewItem()">Add to Wishlist</button>
+    </div>
+  </div>
+
+  <!-- Cards Grid -->
+  <div class="items-grid" id="items-container">
+    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+      Loading wish list...
+    </div>
+  </div>
+</div>
+
+<script>
+  // CONFIGURATION: Replace with your deployed Web App URL
+  const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
+  const ADULT_PIN = "1225"; // Change to your preferred family adult PIN
+
+  let allItems = [];
+  let currentFilter = "All";
+  let currentMode = "kid"; // 'kid' or 'adult'
+
+  async function loadData() {
+    try {
+      const res = await fetch(`${API_URL}?t=${Date.now()}`);
+      const data = await res.json();
+      allItems = (data.items || []).map(normalizeItem);
+      renderList();
+    } catch (err) {
+      console.error("Failed to load wishlist:", err);
+      document.getElementById("items-container").innerHTML =
+        `<div style="grid-column: 1 / -1; text-align: center; color: var(--accent-red);">
+           Failed to connect to sheet. Please check your Apps Script URL.
+         </div>`;
+    }
+  }
+
+  function normalizeItem(raw) {
+    return {
+      id: String(raw.item_id || ""),
+      child: String(raw.child_name || "General"),
+      title: String(raw.item_title || "Untitled"),
+      url: String(raw.item_url || ""),
+      image: String(raw.image_url || ""),
+      price: String(raw.price_range || ""),
+      notes: String(raw.notes || ""),
+      purchased: !!(raw.purchased === true || raw.purchased === "TRUE" || raw.purchased === 1),
+      purchased_by: String(raw.purchased_by || ""),
+      date_purchased: String(raw.date_purchased || "")
+    };
+  }
+
+  // Attempt automatic metadata pull using open Microlink API
+  async function autoFetchMetadata() {
+    const urlInput = document.getElementById("input-url").value.trim();
+    if (!urlInput || !urlInput.startsWith("http")) return;
+
+    try {
+      const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(urlInput)}`);
+      const json = await res.json();
+      if (json.status === "success" && json.data) {
+        const titleEl = document.getElementById("input-title");
+        const imgInput = document.getElementById("input-image");
+
+        if (!titleEl.value && json.data.title) {
+          titleEl.value = json.data.title.substring(0, 80);
+        }
+        if (json.data.image && json.data.image.url) {
+          imgInput.value = json.data.image.url;
+        }
+      }
+    } catch (e) {
+      console.log("Could not auto-scrape URL metadata", e);
+    }
+  }
+
+  async function submitNewItem() {
+    const child = document.getElementById("input-child").value;
+    const title = document.getElementById("input-title").value.trim();
+    const url = document.getElementById("input-url").value.trim();
+    const price = document.getElementById("input-price").value.trim();
+    const notes = document.getElementById("input-notes").value.trim();
+    const image = document.getElementById("input-image").value.trim();
+
+    if (!title) {
+      alert("Please provide an item name.");
+      return;
+    }
+
+    const tempId = "wl-" + Date.now();
+    const newItem = {
+      id: tempId,
+      child: child,
+      title: title,
+      url: url,
+      image: image,
+      price: price,
+      notes: notes,
+      purchased: false,
+      purchased_by: "",
+      date_purchased: ""
+    };
+
+    // Optimistic UI insert
+    allItems.unshift(newItem);
+    renderList();
+
+    // Reset fields
+    document.getElementById("input-title").value = "";
+    document.getElementById("input-url").value = "";
+    document.getElementById("input-price").value = "";
+    document.getElementById("input-notes").value = "";
+    document.getElementById("input-image").value = "";
+
+    // Sync to backend
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "add",
+          item: {
+            child_name: child,
+            item_title: title,
+            item_url: url,
+            image_url: image,
+            price_range: price,
+            notes: notes
+          }
+        })
+      });
+    } catch (e) {
+      console.warn("Sync failed:", e);
+    }
+  }
+
+  async function togglePurchased(itemId, isPurchased) {
+    let buyer = "";
+    if (isPurchased) {
+      buyer = prompt("Who is purchasing this item? (Name):", "") || "Secret Santa";
+    }
+
+    // Optimistic local update
+    const target = allItems.find(i => i.id === itemId);
+    if (target) {
+      target.purchased = isPurchased;
+      target.purchased_by = isPurchased ? buyer : "";
+      target.date_purchased = isPurchased ? new Date().toLocaleDateString() : "";
+    }
+    renderList();
+
+    // Push to backend
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "toggle_purchase",
+          item_id: itemId,
+          purchased: isPurchased,
+          purchased_by: buyer
+        })
+      });
+    } catch (e) {
+      console.warn("Sync failed:", e);
+    }
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById("btn-kid-mode").classList.toggle("active", mode === "kid");
+    document.getElementById("btn-adult-mode").classList.toggle("active", mode === "adult");
+    renderList();
+  }
+
+  function promptAdultMode() {
+    if (currentMode === "adult") return;
+    const pin = prompt("Enter Adult PIN:");
+    if (pin === ADULT_PIN) {
+      setMode("adult");
+    } else if (pin !== null) {
+      alert("Incorrect PIN");
+    }
+  }
+
+  function setFilter(child) {
+    currentFilter = child;
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.innerText === child || (child === "All" && btn.innerText === "All Items"));
+    });
+    renderList();
+  }
+
+  function renderList() {
+    const container = document.getElementById("items-container");
+    container.innerHTML = "";
+
+    // 1. Filter by child
+    let filtered = allItems.filter(item => currentFilter === "All" || item.child.toLowerCase() === currentFilter.toLowerCase());
+
+    // 2. Sort: Unpurchased at top, Purchased moved to the very bottom
+    filtered.sort((a, b) => {
+      if (a.purchased === b.purchased) return 0;
+      return a.purchased ? 1 : -1;
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">No items found for this list.</div>`;
+      return;
+    }
+
+    filtered.forEach(item => {
+      const card = document.createElement("div");
+      card.className = `item-card ${item.purchased ? "is-purchased" : ""}`;
+
+      const thumb = item.image
+        ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🎁</div>'">`
+        : `<div class="placeholder">🎁</div>`;
+
+      let adultControls = "";
+      if (currentMode === "adult") {
+        adultControls = `
+          <div class="purchase-control">
+            <label class="purchase-label">
+              <input type="checkbox" ${item.purchased ? "checked" : ""} onchange="togglePurchased('${item.id}', this.checked)">
+              <span>${item.purchased ? "Purchased" : "Mark as Bought"}</span>
+            </label>
+            ${item.purchased ? `<div class="buyer-info">${item.purchased_by ? item.purchased_by + "<br>" : ""}${item.date_purchased}</div>` : ""}
+          </div>
+        `;
+      }
+
+      card.innerHTML = `
+        <div class="item-thumb-box">${thumb}</div>
+        <div class="item-body">
+          <span class="item-child-badge">${item.child}</span>
+          <div class="item-title">
+            ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>` : item.title}
+          </div>
+          <div class="item-meta">
+            <span>${item.price ? item.price : "Price unlisted"}</span>
+            ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener" style="color: var(--accent-gold); text-decoration: none;">View Store ↗</a>` : ""}
+          </div>
+          ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ""}
+          ${adultControls}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
+  // Initial load
+  loadData();
+</script>
+
+</body>
+</html>
