@@ -138,16 +138,6 @@
       font-weight: 600;
     }
 
-    .btn-delete {
-      background: transparent;
-      border: none;
-      color: #7a9484;
-      cursor: pointer;
-      font-size: 0.9rem;
-    }
-
-    .btn-delete:hover { color: var(--accent-red); }
-
     .item-title {
       font-size: 1.05rem;
       font-weight: 600;
@@ -300,27 +290,6 @@
     }
   }
 
-  async function deleteItem(itemId, itemTitle) {
-    if (!confirm(`Delete "${itemTitle}" from the wish list?`)) return;
-
-    allItems = allItems.filter(i => i.id !== itemId);
-    renderList();
-
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "delete",
-          item_id: itemId
-        })
-      });
-    } catch (e) {
-      console.warn("Delete sync failed:", e);
-    }
-  }
-
   function setFilter(child) {
     currentFilter = child;
     document.querySelectorAll(".tab-btn").forEach(btn => {
@@ -358,7 +327,6 @@
         <div class="item-body">
           <div class="item-header">
             <span class="item-child-badge">${item.child}</span>
-            <button class="btn-delete" title="Delete Item" onclick="deleteItem('${item.id}', '${item.title.replace(/'/g, "\\'")}')">🗑</button>
           </div>
           <div class="item-title">
             ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>` : item.title}
