@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Christmas Wish List Tracker</title>
+  <title>🎄 Christmas Wish Lists 🎁</title>
   <style>
     :root {
       --bg-color: #0f1f17;
@@ -14,8 +14,6 @@
       --accent-gold: #e2b442;
       --text-main: #f3f7f4;
       --text-muted: #9eb8a7;
-      --purchased-bg: #14241c;
-      --purchased-border: #1d3327;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -32,7 +30,6 @@
     header {
       text-align: center;
       margin-bottom: 25px;
-      position: relative;
     }
 
     header h1 {
@@ -41,29 +38,10 @@
       text-shadow: 0 2px 4px rgba(0,0,0,0.4);
     }
 
-    .view-switch {
-      margin-top: 10px;
-      display: inline-flex;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 4px;
-    }
-
-    .view-btn {
-      background: transparent;
-      border: none;
+    .subhead {
       color: var(--text-muted);
-      padding: 6px 16px;
-      border-radius: 16px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .view-btn.active {
-      background: var(--accent-red);
-      color: white;
+      font-size: 0.95rem;
+      margin-top: 5px;
     }
 
     .filter-tabs {
@@ -116,7 +94,7 @@
       .form-grid { grid-template-columns: 1fr; }
     }
 
-    input, select, textarea {
+    input, select {
       width: 100%;
       background: #0b1711;
       border: 1px solid var(--card-border);
@@ -126,7 +104,7 @@
       font-size: 0.9rem;
     }
 
-    input:focus, select:focus, textarea:focus {
+    input:focus, select:focus {
       outline: 1px solid var(--accent-gold);
     }
 
@@ -161,13 +139,6 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      position: relative;
-    }
-
-    .item-card.is-purchased {
-      background: var(--purchased-bg);
-      border-color: var(--purchased-border);
-      opacity: 0.65;
     }
 
     .item-thumb-box {
@@ -197,17 +168,31 @@
       flex-direction: column;
     }
 
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
     .item-child-badge {
-      display: inline-block;
-      align-self: flex-start;
       background: rgba(226, 180, 66, 0.15);
       color: var(--accent-gold);
       font-size: 0.75rem;
       padding: 2px 8px;
       border-radius: 4px;
-      margin-bottom: 8px;
       font-weight: 600;
     }
+
+    .btn-delete {
+      background: transparent;
+      border: none;
+      color: #7a9484;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .btn-delete:hover { color: var(--accent-red); }
 
     .item-title {
       font-size: 1.05rem;
@@ -237,50 +222,16 @@
       margin-bottom: 12px;
       flex-grow: 1;
     }
-
-    .purchase-control {
-      margin-top: auto;
-      padding-top: 10px;
-      border-top: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .purchase-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .purchase-label input {
-      width: 16px;
-      height: 16px;
-      accent-color: var(--accent-red);
-      cursor: pointer;
-    }
-
-    .buyer-info {
-      font-size: 0.75rem;
-      color: var(--accent-gold);
-      text-align: right;
-    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>🎄 Family Wish List Tracker 🎁</h1>
-    <div class="view-switch">
-      <button class="view-btn active" id="btn-kid-mode" onclick="setMode('kid')">Kids View</button>
-      <button class="view-btn" id="btn-adult-mode" onclick="promptAdultMode()">Adult View (Santa)</button>
-    </div>
+    <h1>🎄 Christmas Wish Lists 🎁</h1>
+    <div class="subhead">Add items and ideas you would love for Christmas!</div>
   </header>
 
-  <!-- Filter tabs -->
   <div class="filter-tabs">
     <button class="tab-btn active" onclick="setFilter('All')">All Items</button>
     <button class="tab-btn" onclick="setFilter('Nora')">Nora</button>
@@ -289,9 +240,8 @@
     <button class="tab-btn" onclick="setFilter('Samantha')">Samantha</button>
   </div>
 
-  <!-- Add Item Form -->
-  <div class="form-card" id="add-form">
-    <h2>Add an Item to the List</h2>
+  <div class="form-card">
+    <h2>Add an Item to the Wish List</h2>
     <div class="form-grid">
       <div>
         <label style="font-size: 0.8rem; color: var(--text-muted);">Who is this for?</label>
@@ -304,7 +254,7 @@
       </div>
 
       <div>
-        <label style="font-size: 0.8rem; color: var(--text-muted);">Product Web Link (URL)</label>
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Product Link (URL)</label>
         <input type="url" id="input-url" placeholder="https://..." onblur="autoFetchMetadata()">
       </div>
 
@@ -331,7 +281,6 @@
     </div>
   </div>
 
-  <!-- Cards Grid -->
   <div class="items-grid" id="items-container">
     <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
       Loading wish list...
@@ -340,13 +289,10 @@
 </div>
 
 <script>
-  // Google Apps Script Web App Deployment URL
   const API_URL = "https://script.google.com/macros/s/AKfycbx3g402tZ_rh37Lk4EBgs8hSbySSr9nnluRybLWQsWA49hlGA3rGaO9mqtm_mVnUU8UTQ/exec";
-  const ADULT_PIN = "1225";
 
   let allItems = [];
   let currentFilter = "All";
-  let currentMode = "kid";
 
   async function loadData() {
     try {
@@ -358,7 +304,7 @@
       console.error("Failed to load wishlist:", err);
       document.getElementById("items-container").innerHTML =
         `<div style="grid-column: 1 / -1; text-align: center; color: var(--accent-red);">
-           Failed to connect to sheet. Please check your Apps Script URL.
+           Failed to connect to sheet. Please check script deployment.
          </div>`;
     }
   }
@@ -371,10 +317,7 @@
       url: String(raw.item_url || ""),
       image: String(raw.image_url || ""),
       price: String(raw.price_range || ""),
-      notes: String(raw.notes || ""),
-      purchased: !!(raw.purchased === true || raw.purchased === "TRUE" || raw.purchased === 1),
-      purchased_by: String(raw.purchased_by || ""),
-      date_purchased: String(raw.date_purchased || "")
+      notes: String(raw.notes || "")
     };
   }
 
@@ -422,10 +365,7 @@
       url: url,
       image: image,
       price: price,
-      notes: notes,
-      purchased: false,
-      purchased_by: "",
-      date_purchased: ""
+      notes: notes
     };
 
     allItems.unshift(newItem);
@@ -459,18 +399,10 @@
     }
   }
 
-  async function togglePurchased(itemId, isPurchased) {
-    let buyer = "";
-    if (isPurchased) {
-      buyer = prompt("Who is purchasing this item? (Name):", "") || "Secret Santa";
-    }
+  async function deleteItem(itemId, itemTitle) {
+    if (!confirm(`Delete "${itemTitle}" from your wish list?`)) return;
 
-    const target = allItems.find(i => i.id === itemId);
-    if (target) {
-      target.purchased = isPurchased;
-      target.purchased_by = isPurchased ? buyer : "";
-      target.date_purchased = isPurchased ? new Date().toLocaleDateString() : "";
-    }
+    allItems = allItems.filter(i => i.id !== itemId);
     renderList();
 
     try {
@@ -479,31 +411,12 @@
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "toggle_purchase",
-          item_id: itemId,
-          purchased: isPurchased,
-          purchased_by: buyer
+          action: "delete",
+          item_id: itemId
         })
       });
     } catch (e) {
-      console.warn("Sync failed:", e);
-    }
-  }
-
-  function setMode(mode) {
-    currentMode = mode;
-    document.getElementById("btn-kid-mode").classList.toggle("active", mode === "kid");
-    document.getElementById("btn-adult-mode").classList.toggle("active", mode === "adult");
-    renderList();
-  }
-
-  function promptAdultMode() {
-    if (currentMode === "adult") return;
-    const pin = prompt("Enter Adult PIN:");
-    if (pin === ADULT_PIN) {
-      setMode("adult");
-    } else if (pin !== null) {
-      alert("Incorrect PIN");
+      console.warn("Delete sync failed:", e);
     }
   }
 
@@ -521,11 +434,6 @@
 
     let filtered = allItems.filter(item => currentFilter === "All" || item.child.toLowerCase() === currentFilter.toLowerCase());
 
-    filtered.sort((a, b) => {
-      if (a.purchased === b.purchased) return 0;
-      return a.purchased ? 1 : -1;
-    });
-
     if (filtered.length === 0) {
       container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">No items found for this list.</div>`;
       return;
@@ -533,29 +441,19 @@
 
     filtered.forEach(item => {
       const card = document.createElement("div");
-      card.className = `item-card ${item.purchased ? "is-purchased" : ""}`;
+      card.className = "item-card";
 
       const thumb = item.image
         ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🎁</div>'">`
         : `<div class="placeholder">🎁</div>`;
 
-      let adultControls = "";
-      if (currentMode === "adult") {
-        adultControls = `
-          <div class="purchase-control">
-            <label class="purchase-label">
-              <input type="checkbox" ${item.purchased ? "checked" : ""} onchange="togglePurchased('${item.id}', this.checked)">
-              <span>${item.purchased ? "Purchased" : "Mark as Bought"}</span>
-            </label>
-            ${item.purchased ? `<div class="buyer-info">${item.purchased_by ? item.purchased_by + "<br>" : ""}${item.date_purchased}</div>` : ""}
-          </div>
-        `;
-      }
-
       card.innerHTML = `
         <div class="item-thumb-box">${thumb}</div>
         <div class="item-body">
-          <span class="item-child-badge">${item.child}</span>
+          <div class="item-header">
+            <span class="item-child-badge">${item.child}</span>
+            <button class="btn-delete" title="Delete Item" onclick="deleteItem('${item.id}', '${item.title.replace(/'/g, "\\'")}')">🗑</button>
+          </div>
           <div class="item-title">
             ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>` : item.title}
           </div>
@@ -564,7 +462,6 @@
             ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener" style="color: var(--accent-gold); text-decoration: none;">View Store ↗</a>` : ""}
           </div>
           ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ""}
-          ${adultControls}
         </div>
       `;
       container.appendChild(card);
