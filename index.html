@@ -66,7 +66,6 @@
       color: white;
     }
 
-    /* Child filter tabs */
     .filter-tabs {
       display: flex;
       gap: 10px;
@@ -93,7 +92,6 @@
       border-color: var(--accent-gold);
     }
 
-    /* Add Item Form */
     .form-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -150,7 +148,6 @@
 
     .btn-submit:hover { background: var(--accent-red-hover); }
 
-    /* Wishlist Grid */
     .items-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -241,7 +238,6 @@
       flex-grow: 1;
     }
 
-    /* Adult Purchase Bar */
     .purchase-control {
       margin-top: auto;
       padding-top: 10px;
@@ -344,13 +340,13 @@
 </div>
 
 <script>
-  // CONFIGURATION: Replace with your deployed Web App URL
-  const API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL";
-  const ADULT_PIN = "2006"; // Change to your preferred family adult PIN
+  // Google Apps Script Web App Deployment URL
+  const API_URL = "https://script.google.com/macros/s/AKfycbx3g402tZ_rh37Lk4EBgs8hSbySSr9nnluRybLWQsWA49hlGA3rGaO9mqtm_mVnUU8UTQ/exec";
+  const ADULT_PIN = "1225";
 
   let allItems = [];
   let currentFilter = "All";
-  let currentMode = "kid"; // 'kid' or 'adult'
+  let currentMode = "kid";
 
   async function loadData() {
     try {
@@ -382,7 +378,6 @@
     };
   }
 
-  // Attempt automatic metadata pull using open Microlink API
   async function autoFetchMetadata() {
     const urlInput = document.getElementById("input-url").value.trim();
     if (!urlInput || !urlInput.startsWith("http")) return;
@@ -433,18 +428,15 @@
       date_purchased: ""
     };
 
-    // Optimistic UI insert
     allItems.unshift(newItem);
     renderList();
 
-    // Reset fields
     document.getElementById("input-title").value = "";
     document.getElementById("input-url").value = "";
     document.getElementById("input-price").value = "";
     document.getElementById("input-notes").value = "";
     document.getElementById("input-image").value = "";
 
-    // Sync to backend
     try {
       await fetch(API_URL, {
         method: "POST",
@@ -473,7 +465,6 @@
       buyer = prompt("Who is purchasing this item? (Name):", "") || "Secret Santa";
     }
 
-    // Optimistic local update
     const target = allItems.find(i => i.id === itemId);
     if (target) {
       target.purchased = isPurchased;
@@ -482,7 +473,6 @@
     }
     renderList();
 
-    // Push to backend
     try {
       await fetch(API_URL, {
         method: "POST",
@@ -529,10 +519,8 @@
     const container = document.getElementById("items-container");
     container.innerHTML = "";
 
-    // 1. Filter by child
     let filtered = allItems.filter(item => currentFilter === "All" || item.child.toLowerCase() === currentFilter.toLowerCase());
 
-    // 2. Sort: Unpurchased at top, Purchased moved to the very bottom
     filtered.sort((a, b) => {
       if (a.purchased === b.purchased) return 0;
       return a.purchased ? 1 : -1;
@@ -583,7 +571,6 @@
     });
   }
 
-  // Initial load
   loadData();
 </script>
 
