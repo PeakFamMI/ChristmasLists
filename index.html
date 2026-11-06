@@ -108,6 +108,26 @@
       outline: 1px solid var(--accent-gold);
     }
 
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      background: #0b1711;
+      border: 1px solid var(--card-border);
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .radio-option input { width: auto; cursor: pointer; }
+
     .form-actions {
       margin-top: 12px;
       display: flex;
@@ -139,6 +159,12 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      transition: all 0.2s;
+    }
+
+    .item-card.is-top {
+      border: 2px solid var(--accent-gold);
+      box-shadow: 0 0 14px rgba(226, 180, 66, 0.35);
     }
 
     .item-thumb-box {
@@ -182,6 +208,16 @@
       padding: 2px 8px;
       border-radius: 4px;
       font-weight: 600;
+    }
+
+    .priority-selector {
+      background: #0b1711;
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
     }
 
     .item-title {
@@ -250,7 +286,7 @@
 
       <div>
         <label style="font-size: 0.8rem; color: var(--text-muted);">Item Name</label>
-        <input type="text" id="input-title" placeholder="e.g., Cozy Flannel Pajamas">
+        <input type="text" id="input-title" placeholder="e.g., Cozy Flannel Pajamas" required>
       </div>
 
       <div>
@@ -261,6 +297,15 @@
       <div style="grid-column: 1 / -1;">
         <label style="font-size: 0.8rem; color: var(--text-muted);">Specifics (Size, Color, Notes)</label>
         <input type="text" id="input-notes" placeholder="Size Medium, Dark Green color preference">
+      </div>
+
+      <div style="grid-column: 1 / -1;">
+        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Priority Level (Required)</label>
+        <div class="radio-group">
+          <label class="radio-option"><input type="radio" name="priority" value="top" checked> 🤩 Top Choice</label>
+          <label class="radio-option"><input type="radio" name="priority" value="medium"> 😁 Medium</label>
+          <label class="radio-option"><input type="radio" name="priority" value="regular"> 🙂 Regular</label>
+        </div>
       </div>
 
       <input type="hidden" id="input-image" value="">
@@ -307,7 +352,8 @@
       url: String(raw.item_url || ""),
       image: String(raw.image_url || ""),
       price: String(raw.price_range || ""),
-      notes: String(raw.notes || "")
+      notes: String(raw.notes || ""),
+      priority: String(raw.priority || "regular").toLowerCase()
     };
   }
 
@@ -340,6 +386,8 @@
     const url = document.getElementById("input-url").value.trim();
     const price = document.getElementById("input-price").value.trim();
     const notes = document.getElementById("input-notes").value.trim();
+    const priorityRadio = document.querySelector('input[name="priority"]:checked');
+    const priority = priorityRadio ? priorityRadio.value : "regular";
     const image = document.getElementById("input-image").value.trim();
 
     if (!title) {
@@ -355,7 +403,8 @@
       url: url,
       image: image,
       price: price,
-      notes: notes
+      notes: notes,
+      priority: priority
     };
 
     allItems.unshift(newItem);
@@ -380,12 +429,36 @@
             item_url: url,
             image_url: image,
             price_range: price,
-            notes: notes
+            notes: notes,
+            priority: priority
           }
         })
       });
     } catch (e) {
       console.warn("Sync failed:", e);
+    }
+  }
+
+  async function updateItemPriority(itemId, newPriority) {
+    const target = allItems.find(i => i.id === itemId);
+    if (target) {
+      target.priority = newPriority;
+    }
+    renderList();
+
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_priority",
+          item_id: itemId,
+          priority: newPriority
+        })
+      });
+    } catch (e) {
+      console.warn("Priority update sync failed:", e);
     }
   }
 
@@ -410,18 +483,34 @@
 
     filtered.forEach(item => {
       const card = document.createElement("div");
-      card.className = "item-card";
+      card.className = `item-card ${item.priority === 'top' ? 'is-top' : ''}`;
 
       const thumb = item.image
         ? `<img src="${item.image}" alt="${item.title}" onerror="this.parentElement.innerHTML='<div class=\\'placeholder\\'>🎁</div>'">`
         : `<div class="placeholder">🎁</div>`;
+
+      let emojiDisplay = "🙂";
+      let emojiStyle = "font-size: 1rem;";
+      if (item.priority === 'top') {
+        emojiDisplay = "🤩";
+        emojiStyle = "font-size: 1.5rem;";
+      } else if (item.priority === 'medium') {
+        emojiDisplay = "😁";
+        emojiStyle = "font-size: 1.25rem;";
+      }
 
       card.innerHTML = `
         <div class="item-thumb-box">${thumb}</div>
         <div class="item-body">
           <div class="item-header">
             <span class="item-child-badge">${item.child}</span>
+            <select class="priority-selector" onchange="updateItemPriority('${item.id}', this.value)">
+              <option value="top" ${item.priority === 'top' ? 'selected' : ''}>🤩 Top Choice</option>
+              <option value="medium" ${item.priority === 'medium' ? 'selected' : ''}>😁 Medium</option>
+              <option value="regular" ${item.priority === 'regular' ? 'selected' : ''}>🙂 Regular</option>
+            </select>
           </div>
+          <div style="margin-bottom: 6px; ${emojiStyle}">${emojiDisplay}</div>
           <div class="item-title">
             ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>` : item.title}
           </div>
