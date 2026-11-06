@@ -241,9 +241,9 @@
 
   <!-- Legend -->
   <div class="legend-box">
-    <div class="legend-item"><span>🤩</span> Top Priority</div>
-    <div class="legend-item"><span>😁</span> Medium Want</div>
-    <div class="legend-item"><span>🙂</span> Regular / Regular Choice</div>
+    <div class="legend-item"><span style="font-size: 1.3rem;">🤩</span> Top Choice</div>
+    <div class="legend-item"><span style="font-size: 1.1rem;">😁</span> Medium Want</div>
+    <div class="legend-item"><span>🙂</span> Regular</div>
   </div>
 
   <div class="filter-tabs">
@@ -298,17 +298,22 @@
     };
   }
 
-  async function togglePurchased(itemId, isPurchased) {
-    let buyer = "";
-    if (isPurchased) {
-      buyer = prompt("Who is purchasing this item? (Name):", "") || "Adult";
+  async function handleCheckboxClick(event, itemId, isCurrentlyPurchased) {
+    if (isCurrentlyPurchased) {
+      // Grandparent safeguard: block unchecking
+      event.preventDefault();
+      alert("Need to change or uncheck a purchase? Please text or call Adam directly!");
+      return;
     }
 
+    // Checking an unpurchased item: Prompt for buyer name
+    const buyer = prompt("Who is purchasing this item? (Your Name):", "") || "Adult Shopper";
+    
     const target = allItems.find(i => i.id === itemId);
     if (target) {
-      target.purchased = isPurchased;
-      target.purchased_by = isPurchased ? buyer : "";
-      target.date_purchased = isPurchased ? new Date().toLocaleDateString() : "";
+      target.purchased = true;
+      target.purchased_by = buyer;
+      target.date_purchased = new Date().toLocaleDateString();
     }
     renderList();
 
@@ -320,7 +325,7 @@
         body: JSON.stringify({
           action: "toggle_purchase",
           item_id: itemId,
-          purchased: isPurchased,
+          purchased: true,
           purchased_by: buyer
         })
       });
@@ -417,10 +422,10 @@
           ${item.notes ? `<div class="item-notes">${item.notes}</div>` : ""}
           <div class="purchase-control">
             <label class="purchase-label">
-              <input type="checkbox" ${item.purchased ? "checked" : ""} onchange="togglePurchased('${item.id}', this.checked)">
-              <span>${item.purchased ? "Purchased" : "Mark as Bought"}</span>
+              <input type="checkbox" ${item.purchased ? "checked" : ""} onclick="handleCheckboxClick(event, '${item.id}', ${item.purchased})">
+              <span>${item.purchased ? "PURCHASED" : "Mark as Bought"}</span>
             </label>
-            ${item.purchased ? `<div class="buyer-info">${item.purchased_by ? item.purchased_by + "<br>" : ""}${item.date_purchased}</div>` : ""}
+            ${item.purchased ? `<div class="buyer-info">${item.date_purchased}</div>` : ""}
           </div>
         </div>
       `;
