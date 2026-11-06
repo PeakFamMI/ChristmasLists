@@ -196,16 +196,6 @@
       font-weight: 600;
     }
 
-    .priority-selector {
-      background: #0b1711;
-      border: 1px solid var(--card-border);
-      color: white;
-      padding: 2px 6px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-
     .item-title {
       font-size: 1.05rem;
       font-weight: 600;
@@ -393,7 +383,7 @@
   <div class="modal-box">
     <img src="adam-goofy.jpg" alt="Adam's Goofy Face" onerror="this.src='https://via.placeholder.com/110?text=😜'">
     <h3>Hey, you forgot something!</h3>
-    <p>Please enter your name so Adam knows who's shopping (no skipping allowed, Grandma! 😉).</p>
+    <p>Please enter your name so Adam knows who's shopping before marking this as bought.</p>
     <button class="modal-btn" onclick="closeModal('name-modal')">Okay, let me type it</button>
   </div>
 </div>
@@ -448,14 +438,12 @@
     while (!buyer || buyer.trim() === "") {
       buyer = prompt("Who is purchasing this item? (Please enter your name):", "");
       if (buyer === null) {
-        // Grandparent hit Cancel
         event.preventDefault();
         return;
       }
       buyer = buyer.trim();
       if (!buyer) {
         document.getElementById("name-modal").style.display = "flex";
-        // Wait until they close the warning modal before re-prompting
         await new Promise(resolve => window.resolveNameModal = resolve);
       }
     }
@@ -489,29 +477,6 @@
     document.getElementById(modalId).style.display = "none";
     if (modalId === 'name-modal' && window.resolveNameModal) {
       window.resolveNameModal();
-    }
-  }
-
-  async function updateItemPriority(itemId, newPriority) {
-    const target = allItems.find(i => i.id === itemId);
-    if (target) {
-      target.priority = newPriority;
-    }
-    renderList();
-
-    try {
-      await fetch(API_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "update_priority",
-          item_id: itemId,
-          priority: newPriority
-        })
-      });
-    } catch (e) {
-      console.warn("Priority update sync failed:", e);
     }
   }
 
@@ -585,13 +550,8 @@
         <div class="item-body">
           <div class="item-header">
             <span class="item-child-badge">${item.child}</span>
-            <select class="priority-selector" onchange="updateItemPriority('${item.id}', this.value)">
-              <option value="top" ${item.priority === 'top' ? 'selected' : ''}>🤩 Top Choice</option>
-              <option value="medium" ${item.priority === 'medium' ? 'selected' : ''}>😁 Medium</option>
-              <option value="regular" ${item.priority === 'regular' ? 'selected' : ''}>🙂 Regular</option>
-            </select>
+            <div style="${emojiStyle}">${emojiDisplay}</div>
           </div>
-          <div style="margin-bottom: 6px; ${emojiStyle}">${emojiDisplay}</div>
           <div class="item-title">
             ${item.url ? `<a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>` : item.title}
           </div>
