@@ -378,14 +378,23 @@
   </div>
 </div>
 
-<!-- Goofy Face Modal Popup -->
+<!-- Goofy Face Modal Popup (For Unchecks) -->
 <div class="modal-overlay" id="goofy-modal">
   <div class="modal-box">
-    <!-- Make sure you upload 'adam-goofy.jpg' to your GitHub repo root -->
     <img src="adam-goofy.jpg" alt="Adam's Goofy Face" onerror="this.src='https://via.placeholder.com/110?text=😜'">
     <h3>Hold Up!</h3>
     <p>Need to change or uncheck a purchase? Please text or call Adam directly so he can update it!</p>
-    <button class="modal-btn" onclick="closeGoofyModal()">Got it!</button>
+    <button class="modal-btn" onclick="closeModal('goofy-modal')">Got it!</button>
+  </div>
+</div>
+
+<!-- Missing Name Modal Popup (For Blank Names) -->
+<div class="modal-overlay" id="name-modal">
+  <div class="modal-box">
+    <img src="adam-goofy.jpg" alt="Adam's Goofy Face" onerror="this.src='https://via.placeholder.com/110?text=😜'">
+    <h3>Hey, you forgot something!</h3>
+    <p>Please enter your name so Adam knows who's shopping (no skipping allowed, Grandma! 😉).</p>
+    <button class="modal-btn" onclick="closeModal('name-modal')">Okay, let me type it</button>
   </div>
 </div>
 
@@ -434,7 +443,7 @@
       return;
     }
 
-    // Checking an unpurchased item: Enforce name entry ("Hey, you forgot something!")
+    // Checking an unpurchased item: Prompt for name, enforce non-blank with goofy modal
     let buyer = "";
     while (!buyer || buyer.trim() === "") {
       buyer = prompt("Who is purchasing this item? (Please enter your name):", "");
@@ -445,7 +454,9 @@
       }
       buyer = buyer.trim();
       if (!buyer) {
-        alert("Hey, you forgot something! Please enter your name so Adam knows who's shopping.");
+        document.getElementById("name-modal").style.display = "flex";
+        // Wait until they close the warning modal before re-prompting
+        await new Promise(resolve => window.resolveNameModal = resolve);
       }
     }
 
@@ -474,8 +485,11 @@
     }
   }
 
-  function closeGoofyModal() {
-    document.getElementById("goofy-modal").style.display = "none";
+  function closeModal(modalId) {
+    document.getElementById(modalId).style.display = "none";
+    if (modalId === 'name-modal' && window.resolveNameModal) {
+      window.resolveNameModal();
+    }
   }
 
   async function updateItemPriority(itemId, newPriority) {
@@ -513,7 +527,6 @@
     if (category === 'all') return true;
     if (!priceStr) return false;
     
-    // Extract numbers from price string (e.g., "$25 - $30" -> max 30 or min 25)
     const numbers = priceStr.match(/\d+/g);
     if (!numbers || numbers.length === 0) return false;
     const maxVal = Math.max(...numbers.map(Number));
