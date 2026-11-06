@@ -52,7 +52,7 @@
       border: 1px solid var(--card-border);
       padding: 10px 16px;
       border-radius: 8px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       display: flex;
       justify-content: center;
       gap: 24px;
@@ -62,11 +62,48 @@
 
     .legend-item { display: flex; align-items: center; gap: 6px; }
 
+    /* Filter Toolbar */
+    .filter-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 14px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-grow: 1;
+      min-width: 180px;
+    }
+
+    .filter-group label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .filter-group select {
+      background: #0b1711;
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
     .filter-tabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       overflow-x: auto;
-      padding-bottom: 12px;
+      padding-bottom: 4px;
       margin-bottom: 20px;
       border-bottom: 1px solid var(--card-border);
     }
@@ -75,7 +112,7 @@
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       color: var(--text-main);
-      padding: 8px 18px;
+      padding: 8px 16px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 500;
@@ -229,6 +266,62 @@
       text-align: right;
       line-height: 1.2;
     }
+
+    /* Custom Goofy Face Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-box {
+      background: var(--card-bg);
+      border: 2px solid var(--accent-gold);
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .modal-box img {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--accent-gold);
+      margin-bottom: 14px;
+    }
+
+    .modal-box h3 {
+      color: var(--accent-gold);
+      margin-bottom: 8px;
+      font-size: 1.2rem;
+    }
+
+    .modal-box p {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .modal-btn {
+      background: var(--accent-red);
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .modal-btn:hover { background: var(--accent-red-hover); }
   </style>
 </head>
 <body>
@@ -246,6 +339,30 @@
     <div class="legend-item"><span>🙂</span> Regular</div>
   </div>
 
+  <!-- Filter Toolbar -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>FILTER BY PRIORITY</label>
+      <select id="filter-priority" onchange="renderList()">
+        <option value="all">All Priorities</option>
+        <option value="top">🤩 Top Choice</option>
+        <option value="medium">😁 Medium Want</option>
+        <option value="regular">🙂 Regular</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label>FILTER BY PRICE</label>
+      <select id="filter-price" onchange="renderList()">
+        <option value="all">All Prices</option>
+        <option value="under25">Under $25</option>
+        <option value="25to50">$25 - $50</option>
+        <option value="over50">$50+</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Child Tabs -->
   <div class="filter-tabs">
     <button class="tab-btn active" onclick="setFilter('All')">All Items</button>
     <button class="tab-btn" onclick="setFilter('Nora')">Nora</button>
@@ -261,11 +378,22 @@
   </div>
 </div>
 
+<!-- Goofy Face Modal Popup -->
+<div class="modal-overlay" id="goofy-modal">
+  <div class="modal-box">
+    <!-- Make sure you upload 'adam-goofy.jpg' to your GitHub repo root -->
+    <img src="adam-goofy.jpg" alt="Adam's Goofy Face" onerror="this.src='https://via.placeholder.com/110?text=😜'">
+    <h3>Hold Up!</h3>
+    <p>Need to change or uncheck a purchase? Please text or call Adam directly so he can update it!</p>
+    <button class="modal-btn" onclick="closeGoofyModal()">Got it!</button>
+  </div>
+</div>
+
 <script>
   const API_URL = "https://script.google.com/macros/s/AKfycbx3g402tZ_rh37Lk4EBgs8hSbySSr9nnluRybLWQsWA49hlGA3rGaO9mqtm_mVnUU8UTQ/exec";
 
   let allItems = [];
-  let currentFilter = "All";
+  let currentChildFilter = "All";
 
   async function loadData() {
     try {
@@ -300,15 +428,27 @@
 
   async function handleCheckboxClick(event, itemId, isCurrentlyPurchased) {
     if (isCurrentlyPurchased) {
-      // Grandparent safeguard: block unchecking
+      // Stop checkbox from unchecking and open Goofy Modal
       event.preventDefault();
-      alert("Need to change or uncheck a purchase? Please text or call Adam directly!");
+      document.getElementById("goofy-modal").style.display = "flex";
       return;
     }
 
-    // Checking an unpurchased item: Prompt for buyer name
-    const buyer = prompt("Who is purchasing this item? (Your Name):", "") || "Adult Shopper";
-    
+    // Checking an unpurchased item: Enforce name entry ("Hey, you forgot something!")
+    let buyer = "";
+    while (!buyer || buyer.trim() === "") {
+      buyer = prompt("Who is purchasing this item? (Please enter your name):", "");
+      if (buyer === null) {
+        // Grandparent hit Cancel
+        event.preventDefault();
+        return;
+      }
+      buyer = buyer.trim();
+      if (!buyer) {
+        alert("Hey, you forgot something! Please enter your name so Adam knows who's shopping.");
+      }
+    }
+
     const target = allItems.find(i => i.id === itemId);
     if (target) {
       target.purchased = true;
@@ -332,6 +472,10 @@
     } catch (e) {
       console.warn("Sync failed:", e);
     }
+  }
+
+  function closeGoofyModal() {
+    document.getElementById("goofy-modal").style.display = "none";
   }
 
   async function updateItemPriority(itemId, newPriority) {
@@ -358,18 +502,41 @@
   }
 
   function setFilter(child) {
-    currentFilter = child;
+    currentChildFilter = child;
     document.querySelectorAll(".tab-btn").forEach(btn => {
       btn.classList.toggle("active", btn.innerText === child || (child === "All" && btn.innerText === "All Items"));
     });
     renderList();
   }
 
+  function checkPriceCategory(priceStr, category) {
+    if (category === 'all') return true;
+    if (!priceStr) return false;
+    
+    // Extract numbers from price string (e.g., "$25 - $30" -> max 30 or min 25)
+    const numbers = priceStr.match(/\d+/g);
+    if (!numbers || numbers.length === 0) return false;
+    const maxVal = Math.max(...numbers.map(Number));
+
+    if (category === 'under25') return maxVal <= 25;
+    if (category === '25to50') return maxVal > 25 && maxVal <= 50;
+    if (category === 'over50') return maxVal > 50;
+    return true;
+  }
+
   function renderList() {
     const container = document.getElementById("items-container");
     container.innerHTML = "";
 
-    let filtered = allItems.filter(item => currentFilter === "All" || item.child.toLowerCase() === currentFilter.toLowerCase());
+    const priorityFilter = document.getElementById("filter-priority").value;
+    const priceFilter = document.getElementById("filter-price").value;
+
+    let filtered = allItems.filter(item => {
+      const matchChild = (currentChildFilter === "All" || item.child.toLowerCase() === currentChildFilter.toLowerCase());
+      const matchPriority = (priorityFilter === "all" || item.priority === priorityFilter);
+      const matchPrice = checkPriceCategory(item.price, priceFilter);
+      return matchChild && matchPriority && matchPrice;
+    });
 
     // Sort: Unpurchased first, purchased items sink to bottom
     filtered.sort((a, b) => {
@@ -378,7 +545,7 @@
     });
 
     if (filtered.length === 0) {
-      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">No items found for this filter.</div>`;
+      container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">No items match these filters.</div>`;
       return;
     }
 
